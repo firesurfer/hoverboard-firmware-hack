@@ -14,6 +14,13 @@ volatile int weakr = 0;
 
 extern volatile int16_t speed_l;
 extern volatile int16_t speed_r;
+volatile int32_t encodersum_l = 0;
+volatile int32_t encodersum_r = 0;
+int32_t last_encoder_l = 0;
+int32_t last_encoder_r = 0;
+int last_pos_r = 0;
+int last_pos_l = 0;
+int speed_counter = 0;
 
 extern volatile adc_buf_t adc_buffer;
 
@@ -76,51 +83,7 @@ inline void blockPWM(int pwm, int pos, int *u, int *v, int *w) {
   }
 }
 
-inline void blockPhaseCurrent(int pos, int u, int v, int *q) {
-  switch(pos) {
-    case 0:
-      *q = u - v;
-      // *u = 0;
-      // *v = pwm;
-      // *w = -pwm;
-      break;
-    case 1:
-      *q = u;
-      // *u = -pwm;
-      // *v = pwm;
-      // *w = 0;
-      break;
-    case 2:
-      *q = u;
-      // *u = -pwm;
-      // *v = 0;
-      // *w = pwm;
-      break;
-    case 3:
-      *q = v;
-      // *u = 0;
-      // *v = -pwm;
-      // *w = pwm;
-      break;
-    case 4:
-      *q = v;
-      // *u = pwm;
-      // *v = -pwm;
-      // *w = 0;
-      break;
-    case 5:
-      *q = -(u - v);
-      // *u = pwm;
-      // *v = 0;
-      // *w = -pwm;
-      break;
-    default:
-      *q = 0;
-      // *u = 0;
-      // *v = 0;
-      // *w = 0;
-  }
-}
+
 
 uint32_t buzzerTimer        = 0;
 
@@ -134,15 +97,15 @@ int offsetdcr   = 2000;
 
 float batteryVoltage = BAT_NUMBER_OF_CELLS * 4.0;
 
-int curl = 0;
+//int curl = 0;
 // int errorl = 0;
 // int kp = 5;
 // volatile int cmdl = 0;
 
-int last_pos = 0;
-int timer = 0;
-const int max_time = PWM_FREQ / 10;
-volatile int vel = 0;
+//int last_pos = 0;
+//int timer = 0;
+//const int max_time = PWM_FREQ / 10;
+//volatile int vel = 0;
 
 //scan 8 channels with 2ADCs @ 20 clk cycles per sample
 //meaning ~80 ADC clock cycles @ 8MHz until new DMA interrupt =~ 100KHz
@@ -203,7 +166,26 @@ void DMA1_Channel1_IRQHandler() {
   posr += 2;
   posr %= 6;
 
-  blockPhaseCurrent(posl, adc_buffer.rl1 - offsetrl1, adc_buffer.rl2 - offsetrl2, &curl);
+
+  int diff_l = posl - last_pos_l;
+  int diff_r = posr - last_pos_r;
+  last_pos_l = posl;
+  last_pos_r = posr;
+  if(diff_l > 3) diff_l -= 6;
+  if(diff_l <-3) diff_l += 6;
+  if(diff_r > 3) diff_r -= 6;
+  if(diff_r <-3) diff_r += 6;
+  encodersum_l += diff_l;
+  encodersum_r += diff_r;
+  if(++speed_counter >= 1000) {
+    speed_counter = 0;
+    speed_l = encodersum_l - last_encoder_l;
+    speed_r = encodersum_r - last_encoder_r;
+    last_encoder_l = encodersum_l;
+    last_encoder_r = encodersum_r;
+
+  }
+  //blockPhaseCurrent(posl, adc_buffer.rl1 - offsetrl1, adc_buffer.rl2 - offsetrl2, &curl);
 
   //setScopeChannel(2, (adc_buffer.rl1 - offsetrl1) / 8);
   //setScopeChannel(3, (adc_buffer.rl2 - offsetrl2) / 8);
@@ -215,18 +197,18 @@ void DMA1_Channel1_IRQHandler() {
     // if(len == 0){
         // return(0);
     // }
-    
+
     // struct {
         // uint16_t freq : 4;
         // uint16_t volume : 4;
         // uint16_t time : 8;
     // } note = notes[counter];
-    
+
     // if(timer / 500 == note.time){
         // timer = 0;
         // counter++;
     // }
-    
+
     // if(counter == len){
         // counter = 0;
     // }
