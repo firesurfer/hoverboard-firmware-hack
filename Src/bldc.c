@@ -12,7 +12,8 @@ volatile int pwmr = 0;
 volatile int weakl = 0;
 volatile int weakr = 0;
 
-extern volatile int speed;
+extern volatile int16_t speed_l;
+extern volatile int16_t speed_r;
 
 extern volatile adc_buf_t adc_buffer;
 
