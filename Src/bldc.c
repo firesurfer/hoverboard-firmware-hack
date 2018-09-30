@@ -12,10 +12,10 @@ volatile int pwmr = 0;
 volatile int weakl = 0;
 volatile int weakr = 0;
 
-extern volatile int16_t speed_l;
-extern volatile int16_t speed_r;
-volatile int32_t encodersum_l = 0;
-volatile int32_t encodersum_r = 0;
+volatile int16_t speed_l;
+volatile int16_t speed_r;
+int32_t encodersum_l = 0;
+int32_t encodersum_r = 0;
 int32_t last_encoder_l = 0;
 int32_t last_encoder_r = 0;
 int last_pos_r = 0;
@@ -95,7 +95,7 @@ int offsetrr2   = 2000;
 int offsetdcl   = 2000;
 int offsetdcr   = 2000;
 
-float batteryVoltage = BAT_NUMBER_OF_CELLS * 4.0;
+float batteryVoltage = BAT_NUMBER_OF_CELLS * 4.0f;
 
 //int curl = 0;
 // int errorl = 0;
@@ -126,7 +126,7 @@ void DMA1_Channel1_IRQHandler() {
   }
 
   if (buzzerTimer % 1000 == 0) {  // because you get float rounding errors if it would run every time
-    batteryVoltage = batteryVoltage * 0.99 + ((float)adc_buffer.batt1 * ((float)BAT_CALIB_REAL_VOLTAGE / (float)BAT_CALIB_ADC)) * 0.01;
+    batteryVoltage = batteryVoltage * 0.99f + ((float)adc_buffer.batt1 * ((float)BAT_CALIB_REAL_VOLTAGE / (float)BAT_CALIB_ADC)) * 0.01f;
   }
 
   //disable PWM when current limit is reached (current chopping)
@@ -183,7 +183,6 @@ void DMA1_Channel1_IRQHandler() {
     speed_r = encodersum_r - last_encoder_r;
     last_encoder_l = encodersum_l;
     last_encoder_r = encodersum_r;
-
   }
   //blockPhaseCurrent(posl, adc_buffer.rl1 - offsetrl1, adc_buffer.rl2 - offsetrl2, &curl);
 

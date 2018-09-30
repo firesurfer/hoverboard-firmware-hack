@@ -62,6 +62,9 @@ extern volatile int pwmr;  // global variable for pwm right. -1000 to 1000
 extern volatile int weakl; // global variable for field weakening left. -1000 to 1000
 extern volatile int weakr; // global variable for field weakening right. -1000 to 1000
 
+extern volatile int16_t speed_l; // global variable for encoder speed left
+extern volatile int16_t speed_r; // global variable for encoder speed right
+
 extern uint8_t buzzerFreq;    // global variable for the buzzer pitch. can be 1, 2, 3, 4, 5, 6, 7...
 extern uint8_t buzzerPattern; // global variable for the buzzer pattern. can be 1, 2, 3, 4, 5, 6, 7...
 
@@ -173,19 +176,19 @@ int main(void) {
     HAL_Delay(DELAY_IN_MAIN_LOOP); //delay in ms
 
 
-   
+
       cmd1 = CLAMP((int16_t)command.steer, -1000, 1000);
       cmd2 = CLAMP((int16_t)command.speed, -1000, 1000);
-     
+
       timeout = 0;
-    
+
 
 
     // ####### LOW-PASS FILTER #######
-    steer = steer * (1.0 - FILTER) + cmd1 * FILTER;
-    speed = speed * (1.0 - FILTER) + cmd2 * FILTER;
+    steer = steer * (1.0f - FILTER) + cmd1 * FILTER;
+    speed = speed * (1.0f - FILTER) + cmd2 * FILTER;
 
-   
+
     // ####### MIXER #######
     speedR = CLAMP(steer, -1000, 1000);
     speedL = CLAMP(speed, -1000, 1000);
@@ -205,7 +208,7 @@ int main(void) {
     // ####### SET OUTPUTS #######
     pwmr = speedR;
     pwml = speedL;
-   
+
 
     lastSpeedL = speedL;
     lastSpeedR = speedR;
@@ -213,9 +216,9 @@ int main(void) {
 
     if (inactivity_timeout_counter % 25 == 0) {
       // ####### CALC BOARD TEMPERATURE #######
-      board_temp_adc_filtered = board_temp_adc_filtered * 0.99 + (float)adc_buffer.temp * 0.01;
+      board_temp_adc_filtered = board_temp_adc_filtered * 0.99f + (float)adc_buffer.temp * 0.01f;
       board_temp_deg_c = ((float)TEMP_CAL_HIGH_DEG_C - (float)TEMP_CAL_LOW_DEG_C) / ((float)TEMP_CAL_HIGH_ADC - (float)TEMP_CAL_LOW_ADC) * (board_temp_adc_filtered - (float)TEMP_CAL_LOW_ADC) + (float)TEMP_CAL_LOW_DEG_C;
-    
+
     }
 
 
