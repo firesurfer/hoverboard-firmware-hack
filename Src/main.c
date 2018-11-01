@@ -81,6 +81,7 @@ extern uint8_t nunchuck_data[6];
 
 
 int milli_vel_error_sum = 0;
+volatile int speed_command_timeout = 0;
 
 
 void poweroff() {
@@ -102,6 +103,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     {
         command.speed = uart_buffer[1];
         command.steer = uart_buffer[2];
+        speed_command_timeout = 0;
     }
     else if(uart_buffer[0] == 2)
     {
@@ -175,7 +177,11 @@ int main(void) {
   while(1) {
     HAL_Delay(DELAY_IN_MAIN_LOOP); //delay in ms
 
-
+      ++speed_command_timeout;
+      if(speed_command_timeout>120){
+        command.steer = 0;
+        command.speed = 0;
+      }
 
       cmd1 = CLAMP((int16_t)command.steer, -1000, 1000);
       cmd2 = CLAMP((int16_t)command.speed, -1000, 1000);
@@ -194,10 +200,10 @@ int main(void) {
     speedL = CLAMP(speed, -1000, 1000);
 
     //Field weakening
-    if(abs(speedL) > 700 && abs(speedR) > 700)
+    if( abs(speedL) > 700 && abs(speedR) > 700)
     {
-      weakl = abs(speedL) - 600; /* weak should never exceed 400 or 450 MAX!! */ \
-      weakr = abs(speedR) - 600;
+      weakl = abs(speedL) - 550; /* weak should never exceed 400 or 450 MAX!! */ \
+      weakr = abs(speedR) - 550;
     }
     else
     {
