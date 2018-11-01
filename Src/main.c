@@ -82,9 +82,11 @@ extern float batteryVoltage; // global variable for battery voltage
 uint32_t inactivity_timeout_counter;
 
 extern uint8_t nunchuck_data[6];
-int16_t uart_tx_buffer[3];
+int16_t uart_tx_buffer[4];
 
 
+extern int offsetdcl;
+extern int offsetdcr;
 
 
 int milli_vel_error_sum = 0;
@@ -245,12 +247,13 @@ int main(void) {
     lastSpeedR = speedR;
 
     static int speed_send_counter = 0;
-    if(++speed_send_counter > 100){
+    if(++speed_send_counter >= 4){
         speed_send_counter = 0;
-        uart_tx_buffer[0]=1;
-        uart_tx_buffer[1]=speed_l;
-        uart_tx_buffer[2]=speed_r;
-        HAL_UART_Transmit_DMA(&huart2, (uint8_t*)uart_tx_buffer, 6);
+        uart_tx_buffer[0]=speed_l;
+        uart_tx_buffer[1]=speed_r;
+        uart_tx_buffer[2]=(adc_buffer.dcl - offsetdcl);
+        uart_tx_buffer[3]=(adc_buffer.dcr - offsetdcr);
+        HAL_UART_Transmit_DMA(&huart2, (uint8_t*)uart_tx_buffer, 8);
     }
 
 
