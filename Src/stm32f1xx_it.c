@@ -39,7 +39,7 @@
 extern DMA_HandleTypeDef hdma_i2c2_rx;
 extern DMA_HandleTypeDef hdma_i2c2_tx;
 extern I2C_HandleTypeDef hi2c2;
-
+extern UART_HandleTypeDef huart2;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 
@@ -161,9 +161,7 @@ void PendSV_Handler(void) {
 /**
 * @brief This function handles System tick timer.
 */
-#ifdef CONTROL_PPM
-void PPM_SysTick_Callback(void);
-#endif
+
 void SysTick_Handler(void) {
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
@@ -171,62 +169,17 @@ void SysTick_Handler(void) {
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-#ifdef CONTROL_PPM
-  PPM_SysTick_Callback();
-#endif
+
   /* USER CODE END SysTick_IRQn 1 */
 }
 
-#ifdef CONTROL_NUNCHUCK
-extern I2C_HandleTypeDef hi2c2;
-void I2C1_EV_IRQHandler(void)
-{
-  HAL_I2C_EV_IRQHandler(&hi2c2);
+
+
+
+void USART2_IRQHandler(void)
+{ 
+  HAL_UART_IRQHandler(&huart2);
 }
-
-void I2C1_ER_IRQHandler(void)
-{
-  HAL_I2C_ER_IRQHandler(&hi2c2);
-}
-
-/**
-* @brief This function handles DMA1 channel4 global interrupt.
-*/
-void DMA1_Channel4_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel4_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_i2c2_tx);
-  /* USER CODE BEGIN DMA1_Channel4_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel4_IRQn 1 */
-}
-
-/**
-* @brief This function handles DMA1 channel5 global interrupt.
-*/
-void DMA1_Channel5_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel5_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_i2c2_rx);
-  /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel5_IRQn 1 */
-}
-#endif
-
-#ifdef CONTROL_PPM
-void EXTI3_IRQHandler(void)
-{
-    PPM_ISR_Callback();
-    __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_3);
-}
-#endif
-
-#ifdef CONTROL_SERIAL_USART2
 void DMA1_Channel6_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
@@ -251,7 +204,7 @@ void DMA1_Channel7_IRQHandler(void)
 
   /* USER CODE END DMA1_Channel5_IRQn 1 */
 }
-#endif
+
 
 /******************************************************************************/
 /* STM32F1xx Peripheral Interrupt Handlers                                    */
