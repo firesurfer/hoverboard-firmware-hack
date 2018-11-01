@@ -162,7 +162,7 @@ format:
 clean:
 	-rm -fR .dep $(BUILD_DIR)
 
-flash:
+flash: $(BUILD_DIR)/$(TARGET).bin
 	st-flash --reset write $(BUILD_DIR)/$(TARGET).bin 0x8000000
 	st-flash reset
 
