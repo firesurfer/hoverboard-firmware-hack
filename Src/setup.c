@@ -65,6 +65,9 @@ void UART_Control_Init() {
   HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 5, 7);
   HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
+  HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);                                        
+  HAL_NVIC_EnableIRQ(USART2_IRQn);
+
   huart2.Instance = USART2;
   huart2.Init.BaudRate = CONTROL_BAUD;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
