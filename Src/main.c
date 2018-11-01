@@ -159,10 +159,11 @@ int main(void) {
   int speedL = 0, speedR = 0;
   float direction = 1;
 
-  #ifdef CONTROL_SERIAL_USART2
-    UART_Control_Init();
-    HAL_UART_Receive_DMA(&huart2, (uint8_t*)uart_buffer, 6);
-  #endif
+
+  UART_Control_Init();
+  HAL_UART_Receive_DMA(&huart2, (uint8_t*)uart_buffer, 6);
+  char* data = "hallo";
+  HAL_UART_Transmit_DMA(&huart2, data, 4);
 
   float board_temp_adc_filtered = (float)adc_buffer.temp;
   float board_temp_deg_c;
