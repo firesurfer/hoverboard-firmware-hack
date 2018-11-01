@@ -48,6 +48,10 @@ typedef struct{
    int16_t steer;
    int16_t speed;
    //uint32_t crc;
+   int16_t boostl1;
+   int16_t boostr1;
+   int16_t boostl2;
+   int16_t boostr2;
 } Serialcommand;
 
 volatile Serialcommand command;
@@ -61,6 +65,8 @@ extern volatile int pwml;  // global variable for pwm left. -1000 to 1000
 extern volatile int pwmr;  // global variable for pwm right. -1000 to 1000
 extern volatile int weakl; // global variable for field weakening left. -1000 to 1000
 extern volatile int weakr; // global variable for field weakening right. -1000 to 1000
+extern volatile int weakl2; // global variable for field weakening left. -1000 to 1000
+extern volatile int weakr2; // global variable for field weakening right. -1000 to 1000
 
 extern volatile int16_t speed_l; // global variable for encoder speed left
 extern volatile int16_t speed_r; // global variable for encoder speed right
@@ -109,7 +115,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     {
         poweroff();
     }
-}
+    else if(uart_buffer[0] == 3)
+    {
+        command.boostl1 = uart_buffer[1];
+        command.boostr1 = uart_buffer[2];
+    }
+    else if(uart_buffer[0] == 4)
+    {
+        command.boostl2 = uart_buffer[1];
+        command.boostr2 = uart_buffer[2];
+    }}
 
 
 int main(void) {
@@ -181,6 +196,10 @@ int main(void) {
       if(speed_command_timeout>120){
         command.steer = 0;
         command.speed = 0;
+        command.boostl1 = 0;
+        command.boostr1 = 0;
+        command.boostl2 = 0;
+        command.boostr2 = 0;
       }
 
       cmd1 = CLAMP((int16_t)command.steer, -1000, 1000);
@@ -210,6 +229,10 @@ int main(void) {
       weakl = 0;
       weakr = 0;
     }
+    weakl = CLAMP(command.boostl1, 0, abs(speedL));
+    weakr = CLAMP(command.boostr1, 0, abs(speedR));
+    weakl2 = CLAMP(command.boostl2, 0, abs(speedL));
+    weakr2 = CLAMP(command.boostr2, 0, abs(speedR));
 
     // ####### SET OUTPUTS #######
     pwmr = speedR;
@@ -218,6 +241,16 @@ int main(void) {
 
     lastSpeedL = speedL;
     lastSpeedR = speedR;
+
+    static int speed_send_counter = 0;
+    if(++speed_send_counter > 100){
+        speed_send_counter = 0;
+        int16_t buffer[3];
+        buffer[0]=1;
+        buffer[1]=speed_l;
+        buffer[2]=speed_r;
+        HAL_UART_Transmit(&huart2, (uint8_t*)buffer, 6, 20);
+    }
 
 
     if (inactivity_timeout_counter % 25 == 0) {
