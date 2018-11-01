@@ -11,6 +11,8 @@ volatile int pwml = 0;
 volatile int pwmr = 0;
 volatile int weakl = 0;
 volatile int weakr = 0;
+volatile int weakl2 = 0;
+volatile int weakr2 = 0;
 
 volatile int16_t speed_l;
 volatile int16_t speed_r;
@@ -251,6 +253,25 @@ void DMA1_Channel1_IRQHandler() {
   vr += weakvr;
   wr += weakwr;
 
+  int weakul2, weakvl2, weakwl2;
+  if (pwml > 0) {
+    blockPWM(weakl2, (posl+4) % 6, &weakul2, &weakvl2, &weakwl2);
+  } else {
+    blockPWM(-weakl2, (posl+2) % 6, &weakul2, &weakvl2, &weakwl2);
+  }
+  ul += weakul2;
+  vl += weakvl2;
+  wl += weakwl2;
+
+  int weakur2, weakvr2, weakwr2;
+  if (pwmr > 0) {
+    blockPWM(weakr2, (posr+4) % 6, &weakur2, &weakvr2, &weakwr2);
+  } else {
+    blockPWM(-weakr2, (posr+2) % 6, &weakur2, &weakvr2, &weakwr2);
+  }
+  ur += weakur2;
+  vr += weakvr2;
+  wr += weakwr2;
   LEFT_TIM->LEFT_TIM_U = CLAMP(ul + pwm_res / 2, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_V = CLAMP(vl + pwm_res / 2, 10, pwm_res-10);
   LEFT_TIM->LEFT_TIM_W = CLAMP(wl + pwm_res / 2, 10, pwm_res-10);
